@@ -1,7 +1,7 @@
 def istGerade(zahl):
     return zahl % 2 == 0
 
-valueList = [50,60,70,53,97,98,87,51,49,99,100]
+valueList = [50,60,70,53,97,98,87,51,49,99,100,41]
 
 for index in range(len(valueList)):
     if istGerade(valueList[index]):
