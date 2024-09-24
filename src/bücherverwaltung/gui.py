@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk  # Für .jpg und .png Unterstützung (mit Pillow)
+from PIL import Image, ImageTk
+import sqllie as db  # Dein Modul 'sqllie' importieren
 
 # Hauptfenster erstellen
 root = tk.Tk()
@@ -8,7 +9,7 @@ root.title("Bücherverwaltung")
 root.geometry("950x700")
 
 # Icon für das Fenster ändern
-icon_image = Image.open("C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png") # Verwende dein hochgeladenes Bild
+icon_image = Image.open("C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")  # Verwende dein hochgeladenes Bild
 icon_photo = ImageTk.PhotoImage(icon_image)
 root.iconphoto(False, icon_photo)
 
@@ -89,40 +90,57 @@ nicht_gelesen_button = tk.Radiobutton(frame_hinzufuegen, text="Nicht gelesen", v
 nicht_gelesen_button.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
 # Button zum Bestätigen (Daten in Datenbank speichern)
-button_buch_hinzufuegen = tk.Button(frame_hinzufuegen, text="Hinzufügen")
+button_buch_hinzufuegen = tk.Button(frame_hinzufuegen, text="Hinzufügen", command=lambda: db.eingabe_in_datenbank(
+    root, 
+    titel.get(),  # Verwende das Entry-Feld für Titel
+    autor.get(),  # Verwende das Entry-Feld für Autor
+    genre.get(),  # Verwende das Entry-Feld für Genre
+    jahr.get(),   # Verwende das Entry-Feld für Jahr
+    lesestatus_var.get()  
+))
 button_buch_hinzufuegen.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
+
 
 # 2. Frame für die Suchfunktion mit Umrandung
 frame_suchfunktion = tk.LabelFrame(main_frame, text="Suchfunktion", font=("Helvetica", 12, "bold"), padx=10, pady=10)
 frame_suchfunktion.pack(fill="both", expand="yes", padx=10, pady=10)
 
-# Labels und Eingabefelder für die Suchfunktion nebeneinander anordnen
-tk.Label(frame_suchfunktion, text="Titel:").grid(row=0, column=0, padx=5, pady=5)
-titel_suche = tk.Entry(frame_suchfunktion)
+# Neues Frame speziell für das grid() Layout innerhalb der Suchfunktion
+grid_frame_suchfunktion = tk.Frame(frame_suchfunktion)
+grid_frame_suchfunktion.pack()
+
+# Labels und Eingabefelder für die Suchfunktion nebeneinander anordnen (grid verwenden)
+tk.Label(grid_frame_suchfunktion, text="Titel:").grid(row=0, column=0, padx=5, pady=5)
+titel_suche = tk.Entry(grid_frame_suchfunktion)
 titel_suche.grid(row=0, column=1, padx=5, pady=5)
 
-tk.Label(frame_suchfunktion, text="Autor:").grid(row=0, column=2, padx=5, pady=5)
-autor_suche = tk.Entry(frame_suchfunktion)
+tk.Label(grid_frame_suchfunktion, text="Autor:").grid(row=0, column=2, padx=5, pady=5)
+autor_suche = tk.Entry(grid_frame_suchfunktion)
 autor_suche.grid(row=0, column=3, padx=5, pady=5)
 
-tk.Label(frame_suchfunktion, text="Genre:").grid(row=0, column=4, padx=5, pady=5)
-genre_suche = tk.Entry(frame_suchfunktion)
+tk.Label(grid_frame_suchfunktion, text="Genre:").grid(row=0, column=4, padx=5, pady=5)
+genre_suche = tk.Entry(grid_frame_suchfunktion)
 genre_suche.grid(row=0, column=5, padx=5, pady=5)
 
-tk.Label(frame_suchfunktion, text="Jahr:").grid(row=0, column=6, padx=5, pady=5)
-jahr_suche = tk.Entry(frame_suchfunktion)
+tk.Label(grid_frame_suchfunktion, text="Jahr:").grid(row=0, column=6, padx=5, pady=5)
+jahr_suche = tk.Entry(grid_frame_suchfunktion)
 jahr_suche.grid(row=0, column=7, padx=5, pady=5)
 
-# Radiobuttons für Lesestatus innerhalb des "Suchfunktion"-Bereichs
 lesestatus_suche_var = tk.IntVar()
-gelesen_button_suche = tk.Radiobutton(frame_suchfunktion, text="Gelesen", variable=lesestatus_suche_var, value=1)
+gelesen_button_suche = tk.Radiobutton(grid_frame_suchfunktion, text="Gelesen", variable=lesestatus_suche_var, value=1)
 gelesen_button_suche.grid(row=2, column=0, padx=5, pady=5, sticky="w")
-
-nicht_gelesen_button_suche = tk.Radiobutton(frame_suchfunktion, text="Nicht gelesen", variable=lesestatus_suche_var, value=0)
+nicht_gelesen_button_suche = tk.Radiobutton(grid_frame_suchfunktion, text="Nicht gelesen", variable=lesestatus_suche_var, value=0)
 nicht_gelesen_button_suche.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
-# Button für die Suchfunktion linksbündig
-button_suchfunktion = tk.Button(frame_suchfunktion, text="Suchfunktion")
+# Button für die Suchfunktion
+button_suchfunktion = tk.Button(grid_frame_suchfunktion, text="Suchfunktion", command=lambda: db.suche_in_datenbank(
+    root, 
+    titel_suche.get(), 
+    autor_suche.get(), 
+    genre_suche.get(), 
+    jahr_suche.get(), 
+    lesestatus_suche_var.get() if lesestatus_suche_var.get() in [0, 1] else None
+))
 button_suchfunktion.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
 
 # 3. Frame für "Liste der Bücher ausgeben" mit Umrandung
@@ -134,7 +152,7 @@ listebuecher = tk.Label(frame_liste, text="Liste der Bücher ausgeben", font=("H
 listebuecher.pack(anchor="w", pady=5)
 
 # Button für die Listenanzeige linksbündig
-button_liste = tk.Button(frame_liste, text="Listen Auswahl")
+button_liste = tk.Button(frame_liste, text="Listen Auswahl", command=lambda: db.gesamtAusgabe(root))
 button_liste.pack(anchor="w", pady=5, padx=5)
 
 # Hauptschleife

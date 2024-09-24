@@ -1,26 +1,144 @@
-# SQL mit Python
-import sqlite3  # Modul importieren
+import tkinter as tk
+from tkinter import ttk
+import sqlite3
+import logo
 
-# Verbindung zur SQLite-Datenbank erstellen (oder erstellen, falls sie noch nicht existiert)
-conn = sqlite3.connect("bücherverwaltung.db")  # Dateiendung sollte ".db" sein
 
-# Cursor-Objekt erstellen
-cur = conn.cursor()
+# Funktion für die dynamische Eingabe in die Datenbank
+def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe):
+    # Verbindung zur SQLite-Datenbank erstellen
+    conn = sqlite3.connect("bücherverwaltung.db")
+    cur = conn.cursor()
+    
+    # Sicherstellen, dass keine leeren Felder eingegeben wurden
+    if titel_eingabe and autor_eingabe and genre_eingabe and jahr_eingabe and gelesen_var_eingabe is not None:
+        # Parameterbindung für Sicherheit und Vermeidung von SQL-Injection
+        query = """
+            INSERT INTO bücherverwaltung (titel, autor, genre, year, read)
+            VALUES (?, ?, ?, ?, ?)
+        """
+        
+        # Daten in die Datenbank einfügen
+        cur.execute(query, (titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe))
+        
+        # Änderungen speichern
+        conn.commit()
+        
+        print("Buch erfolgreich hinzugefügt!")
+    else:
+        print("Alle Felder müssen ausgefüllt sein!")
 
-# Tabelle erstellen, falls sie noch nicht existiert
-cur.execute("""
-                CREATE TABLE IF NOT EXISTS bücherverwaltung(
-                    buch_id INTEGER PRIMARY KEY,
-                    titel TEXT NOT NULL,
-                    autor TEXT NOT NULL,
-                    genere TEXT NOT NULL,
-                    year INTEGER NOT NULL,
-                    read BOOLEAN NOT NULL
-                )
-            """)
+    # Verbindung schließen
+    conn.close()
 
-# Änderung speichern (commit)
-conn.commit()
 
-# Verbindung schließen
-conn.close()
+
+# Funktion für die dynamische Suchfunktion
+def suche_in_datenbank(root, titel_suche, autor_suche, genre_suche, jahr_suche, gelesen_var):
+    # Verbindung zur SQLite-Datenbank erstellen
+    conn = sqlite3.connect("bücherverwaltung.db")
+    cur = conn.cursor()
+
+    # Grundlegende SQL-Abfrage
+    query = "SELECT * FROM bücherverwaltung WHERE 1=1"
+    params = []
+
+    # Dynamisches Hinzufügen von Kriterien
+    if titel_suche:
+        query += " AND titel LIKE ?"
+        params.append(f"%{titel_suche}%")
+    
+    if autor_suche:
+        query += " AND autor LIKE ?"
+        params.append(f"%{autor_suche}%")
+    
+    if genre_suche:
+        query += " AND genre LIKE ?"
+        params.append(f"%{genre_suche}%")
+    
+    if jahr_suche:
+        query += " AND year = ?"
+        params.append(jahr_suche)
+    
+    # Lesestatus hinzufügen, wenn eine Auswahl getroffen wurde
+    if gelesen_var != -1:  # Wenn gelesen_var -1 ist, wurde nichts ausgewählt
+        query += " AND read = ?"
+        params.append(gelesen_var)
+
+    # Abfrage ausführen
+    cur.execute(query, params)
+    rows = cur.fetchall()
+
+    # Neues Fenster für die Suchergebnisse
+    data_window = tk.Toplevel(root)
+    data_window.title("Suchergebnisse")
+    data_window.geometry("950x400")
+    
+        # Setze das Logo im neuen Fenster (data_window)
+    logo.set_window_logo(data_window, "C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")
+
+    # Treeview für die Ergebnisse
+    columns = ("Buch ID", "Titel", "Autor", "Genre", "Jahr", "Gelesen")
+    tree = ttk.Treeview(data_window, columns=columns, show="headings")
+    tree.pack(fill="both", expand=True)
+
+    # Spaltenüberschriften definieren
+    tree.heading("Buch ID", text="Buch ID")
+    tree.heading("Titel", text="Titel")
+    tree.heading("Autor", text="Autor")
+    tree.heading("Genre", text="Genre")
+    tree.heading("Jahr", text="Jahr")
+    tree.heading("Gelesen", text="Gelesen")
+
+    # Spaltenbreiten anpassen
+    tree.column("Buch ID", width=50)
+    tree.column("Titel", width=200)
+    tree.column("Autor", width=150)
+    tree.column("Genre", width=100)
+    tree.column("Jahr", width=50)
+    tree.column("Gelesen", width=70)
+
+    # Ergebnisse in die Tabelle einfügen
+    for book in rows:
+        tree.insert("", tk.END, values=(book[0], book[1], book[2], book[3], book[4], 'Ja' if book[5] == 1 else 'Nein'))
+
+    # Verbindung schließen
+    conn.close()
+
+# Gesamt-Ausgabe-Funktion (falls sie auch benötigt wird)
+def gesamtAusgabe(root):
+    conn = sqlite3.connect("bücherverwaltung.db")
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM bücherverwaltung")
+    rows = cur.fetchall()
+    
+    data_window = tk.Toplevel(root)
+    data_window.title("Liste der Bücher")
+    data_window.geometry("950x400")
+    
+    # Setze das Logo im neuen Fenster (data_window)
+    logo.set_window_logo(data_window, "C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")
+
+    columns = ("Buch ID", "Titel", "Autor", "Genre", "Jahr", "Gelesen")
+    tree = ttk.Treeview(data_window, columns=columns, show="headings")
+    tree.pack(fill="both", expand=True)
+
+    tree.heading("Buch ID", text="Buch ID")
+    tree.heading("Titel", text="Titel")
+    tree.heading("Autor", text="Autor")
+    tree.heading("Genre", text="Genre")
+    tree.heading("Jahr", text="Jahr")
+    tree.heading("Gelesen", text="Gelesen")
+
+    tree.column("Buch ID", width=50)
+    tree.column("Titel", width=200)
+    tree.column("Autor", width=150)
+    tree.column("Genre", width=100)
+    tree.column("Jahr", width=50)
+    tree.column("Gelesen", width=70)
+
+    for book in rows:
+        tree.insert("", tk.END, values=(book[0], book[1], book[2], book[3], book[4], 'Ja' if book[5] == 1 else 'Nein'))
+
+    conn.close()
