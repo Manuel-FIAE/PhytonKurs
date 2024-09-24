@@ -1,7 +1,39 @@
 import tkinter as tk
 from tkinter import ttk
-import sqlite3
+import sqlite3 
 import logo
+
+
+# Funktion zur Anzeige eines Rückmeldefensters
+def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
+    # Neues TopLevel-Fenster erstellen
+    popup = tk.Toplevel(root)
+    popup.title(titel)
+
+    # Größe des Fensters einstellen und Stil verbessern
+    popup.geometry("350x150")
+    popup.configure(bg=farbe)
+    popup.resizable(False, False)
+
+    # Hintergrundfarbe des Fensters
+    style_frame = tk.Frame(popup, bg=farbe)
+    style_frame.pack(expand=True, fill="both")
+
+    # Optional: Icon hinzufügen
+    if icon:
+        icon_label = tk.Label(style_frame, image=icon, bg=farbe)
+        icon_label.pack(pady=10)
+
+    # Nachricht im Fenster anzeigen (zentriert mit größerer Schriftart)
+    message_label = tk.Label(style_frame, text=nachricht, bg=farbe, fg="white", font=("Helvetica", 14, "bold"))
+    message_label.pack(pady=10)
+
+    # Button "OK", um das Fenster manuell zu schließen
+    ok_button = tk.Button(style_frame, text="OK", command=popup.destroy, font=("Helvetica", 10), relief="flat", bg="white", fg=farbe)
+    ok_button.pack(pady=5)
+
+    # Fenster nach 3 Sekunden automatisch schließen, falls OK nicht gedrückt wird
+    popup.after(3000, popup.destroy)
 
 
 # Funktion für die dynamische Eingabe in die Datenbank
@@ -12,25 +44,30 @@ def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr
     
     # Sicherstellen, dass keine leeren Felder eingegeben wurden
     if titel_eingabe and autor_eingabe and genre_eingabe and jahr_eingabe and gelesen_var_eingabe is not None:
-        # Parameterbindung für Sicherheit und Vermeidung von SQL-Injection
-        query = """
-            INSERT INTO bücherverwaltung (titel, autor, genre, year, read)
-            VALUES (?, ?, ?, ?, ?)
-        """
-        
-        # Daten in die Datenbank einfügen
-        cur.execute(query, (titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe))
-        
-        # Änderungen speichern
-        conn.commit()
-        
-        print("Buch erfolgreich hinzugefügt!")
+        try:
+            # Parameterbindung für Sicherheit und Vermeidung von SQL-Injection
+            query = """
+                INSERT INTO bücherverwaltung (titel, autor, genre, year, read)
+                VALUES (?, ?, ?, ?, ?)
+            """
+            
+            # Daten in die Datenbank einfügen
+            cur.execute(query, (titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe))
+            
+            # Änderungen speichern
+            conn.commit()
+
+            # Erfolgsmeldung anzeigen (grünes Fenster)
+            zeige_rueckmeldung(root, "Erfolg", "Buch erfolgreich hinzugefügt!", "green")
+        except Exception as e:
+            # Fehler beim Einfügen
+            zeige_rueckmeldung(root, "Fehler", f"Fehler beim Hinzufügen: {str(e)}", "red")
     else:
-        print("Alle Felder müssen ausgefüllt sein!")
+        # Bei nicht erfolgreichen Eingaben (rote Meldung)
+        zeige_rueckmeldung(root, "Fehler", "Alle Felder müssen ausgefüllt sein!", "red")
 
     # Verbindung schließen
     conn.close()
-
 
 
 # Funktion für die dynamische Suchfunktion
