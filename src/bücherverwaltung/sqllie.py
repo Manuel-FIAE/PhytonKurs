@@ -3,8 +3,7 @@ from tkinter import ttk
 import sqlite3 
 import logo
 
-
-# Funktion zur Anzeige eines Rückmeldefensters
+# Funktion zur Anzeige eines Rückmeldefensters (jetzt auf 2 Sekunden verkürzt)
 def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
     # Neues TopLevel-Fenster erstellen
     popup = tk.Toplevel(root)
@@ -32,13 +31,11 @@ def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
     ok_button = tk.Button(style_frame, text="OK", command=popup.destroy, font=("Helvetica", 10), relief="flat", bg="white", fg=farbe)
     ok_button.pack(pady=5)
 
-    # Fenster nach 3 Sekunden automatisch schließen, falls OK nicht gedrückt wird
-    popup.after(3000, popup.destroy)
-    
-def update_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen): 
-    print("ok ")
+    # Fenster nach 2 Sekunden automatisch schließen
+    popup.after(1000, popup.destroy)
 
-def löschen_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen):
+# Löschen-Funktion mit Popup-Meldung bei Erfolg oder Fehler
+def löschen_in_datenbank(root, buch_id_loeschen, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen):
     # Verbindung zur SQLite-Datenbank erstellen
     conn = sqlite3.connect("bücherverwaltung.db")
     cur = conn.cursor()
@@ -47,19 +44,18 @@ def löschen_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, 
         # Parameterbindung für Sicherheit und Vermeidung von SQL-Injection
         query = """
             DELETE FROM bücherverwaltung 
-            WHERE titel = ? OR autor = ? OR genre = ? OR year = ?
+            WHERE buch_id = ? OR titel = ? OR autor = ? OR genre = ? OR year = ?
         """
         
-        # Daten in die Datenbank einfügen
-        cur.execute(query, (titel_loeschen , autor_loeschen , genre_loeschen , jahr_loeschen ))
-                    # Änderungen speichern
+        cur.execute(query, (buch_id_loeschen, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen))
         conn.commit()
 
         # Erfolgsmeldung anzeigen (grünes Fenster)            
         zeige_rueckmeldung(root, "Erfolg", "Buch erfolgreich gelöscht!", "green")
+    
     except Exception as e:
-        # Fehler beim Einfügen
-        zeige_rueckmeldung(root, "Fehler", f"Fehler beim löschen: {str(e)}", "red")
+        # Fehler beim Löschen
+        zeige_rueckmeldung(root, "Fehler", f"Fehler beim Löschen: {str(e)}", "red")
 
     # Verbindung schließen
     conn.close()
@@ -97,9 +93,35 @@ def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr
     # Verbindung schließen
     conn.close()
 
+# Update-Funktion mit Popup-Meldung bei Erfolg oder Fehler
+def update_in_datenbank(root, buch_id_update, titel_update, autor_update, genre_update, jahr_update, gelesen_var): 
+    # Verbindung zur SQLite-Datenbank erstellen
+    conn = sqlite3.connect("bücherverwaltung.db")
+    cur = conn.cursor()
+    
+    try:
+        # Grundlegende SQL-Abfrage
+        query = """
+            UPDATE bücherverwaltung 
+            SET read = ? 
+            WHERE buch_id = ? OR titel = ? OR autor = ? OR genre = ? OR year = ?
+        """
+        
+        cur.execute(query, (gelesen_var, buch_id_update, titel_update, autor_update, genre_update, jahr_update))
+        conn.commit()
+
+        # Erfolgsmeldung anzeigen (grünes Fenster)
+        zeige_rueckmeldung(root, "Erfolg", "Buchstatus erfolgreich aktualisiert!", "green")
+    
+    except Exception as e:
+        # Fehler beim Aktualisieren
+        zeige_rueckmeldung(root, "Fehler", f"Fehler beim Aktualisieren: {str(e)}", "red")
+    
+    # Verbindung schließen
+    conn.close()
 
 # Funktion für die dynamische Suchfunktion
-def suche_in_datenbank(root, titel_suche, autor_suche, genre_suche, jahr_suche, gelesen_var):
+def suche_in_datenbank(root, buch_id_suche,titel_suche, autor_suche, genre_suche, jahr_suche, gelesen_var):
     # Verbindung zur SQLite-Datenbank erstellen
     conn = sqlite3.connect("bücherverwaltung.db")
     cur = conn.cursor()
@@ -109,6 +131,10 @@ def suche_in_datenbank(root, titel_suche, autor_suche, genre_suche, jahr_suche, 
     params = []
 
     # Dynamisches Hinzufügen von Kriterien
+    if buch_id_suche:
+        query += " AND buch_id = ?"
+        params.append(buch_id_suche)
+    
     if titel_suche:
         query += " AND titel LIKE ?"
         params.append(f"%{titel_suche}%")
