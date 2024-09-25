@@ -34,6 +34,9 @@ def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
 
     # Fenster nach 3 Sekunden automatisch schließen, falls OK nicht gedrückt wird
     popup.after(3000, popup.destroy)
+    
+def update_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen): 
+    print("ok ")
 
 def löschen_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen):
     # Verbindung zur SQLite-Datenbank erstellen

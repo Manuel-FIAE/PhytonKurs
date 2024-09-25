@@ -5,6 +5,7 @@ import sqllie as db  # Dein Modul 'sqllie' importieren
 import logo
 import entry_delete as ed
 
+
 # Hauptfenster erstellen
 root = tk.Tk()
 root.title("Bücherverwaltung")
@@ -187,13 +188,65 @@ button_buch_loeschen = tk.Button(frame_loeschen, text="Löschen", command=lambda
     titel_loeschen.get(),  # Verwende das Entry-Feld für Titel
     autor_loeschen.get(),  # Verwende das Entry-Feld für Autor
     genre_loeschen.get(),  # Verwende das Entry-Feld für Genre
-    jahr_loeschen.get(),   # Verwende das Entry-Feld für Jahr
+    jahr_loeschen.get()    # Verwende das Entry-Feld für Jahr
 ))
-button_buch_loeschen.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
+button_buch_loeschen.grid(row=3, column=0, padx=5, pady=10, sticky="w")
+
+# Button zum Leeren der Eingabefelder (importiere clear_entries aus 'ed')
+clear_button = tk.Button(frame_loeschen, text="Eingaben leeren", command=lambda: ed.clear_entries([titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen]))
+clear_button.grid(row=3, column=1, padx=5, pady=10, sticky="w")
+
+# Stellen sicher, dass beide Buttons in derselben Zeile und nebeneinander angeordnet sind
+button_buch_loeschen.grid(row=3, column=0, padx=5, pady=10, sticky="w")
+clear_button.grid(row=3, column=1, padx=5, pady=10, sticky="w")
+
+
+# 5. Frame für die Update-Funktion mit Umrandung
+frame_update = tk.LabelFrame(main_frame, text="Updatefunktion", font=("Helvetica", 12, "bold"), padx=10, pady=10)
+frame_update.pack(fill="both", expand="yes", padx=10, pady=10)
+
+# Neues Frame speziell für das grid() Layout innerhalb der Updatefunktion
+grid_frame_update = tk.Frame(frame_update)
+grid_frame_update.pack()
+
+# Labels und Eingabefelder für die Updatefunktion nebeneinander anordnen (grid verwenden)
+tk.Label(grid_frame_update, text="Titel:").grid(row=0, column=0, padx=5, pady=5)
+titel_update = tk.Entry(grid_frame_update)
+titel_update.grid(row=0, column=1, padx=5, pady=5)
+
+tk.Label(grid_frame_update, text="Autor:").grid(row=0, column=2, padx=5, pady=5)
+autor_update = tk.Entry(grid_frame_update)
+autor_update.grid(row=0, column=3, padx=5, pady=5)
+
+tk.Label(grid_frame_update, text="Genre:").grid(row=0, column=4, padx=5, pady=5)
+genre_update = tk.Entry(grid_frame_update)
+genre_update.grid(row=0, column=5, padx=5, pady=5)
+
+tk.Label(grid_frame_update, text="Jahr:").grid(row=0, column=6, padx=5, pady=5)
+jahr_update = tk.Entry(grid_frame_update)
+jahr_update.grid(row=0, column=7, padx=5, pady=5)
+
+# Lesestatus-Radiobuttons
+lesestatus_update_var = tk.IntVar()
+gelesen_button_update = tk.Radiobutton(grid_frame_update, text="Gelesen", variable=lesestatus_update_var, value=1)
+gelesen_button_update.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+nicht_gelesen_button_update = tk.Radiobutton(grid_frame_update, text="Nicht gelesen", variable=lesestatus_update_var, value=0)
+nicht_gelesen_button_update.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
+# Button zum Update und zum Leeren der Eingabefelder nebeneinander anordnen
+button_buch_update = tk.Button(grid_frame_update, text="Update", command=lambda: db.update_in_datenbank(
+    root, 
+    titel_update.get(),  
+    autor_update.get(),  
+    genre_update.get(),  
+    jahr_update.get()  
+))
+button_buch_update.grid(row=3, column=0, padx=5, pady=10, sticky="w")
 
 # Button zum Leeren der Eingabefelder
-clear_button = tk.Button(frame_loeschen, text="Eingaben leeren", command=lambda: ed.clear_entries([titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen]))
-clear_button.grid(row=3, column=1, columnspan=4, pady=10, padx=18, sticky="w")
+clear_button = tk.Button(grid_frame_update, text="Eingaben leeren", command=lambda: ed.clear_entries([titel_update, autor_update, genre_update, jahr_update]))
+clear_button.grid(row=3, column=1, padx=0, pady=10, sticky="w")
+
 
 # Hauptschleife
 root.mainloop()
