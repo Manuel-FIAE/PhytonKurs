@@ -6,6 +6,13 @@ import logo
 import entry_delete as ed
 
 
+import tkinter as tk
+from tkinter import ttk
+from PIL import Image, ImageTk
+import sqllie as db  # Dein Modul 'sqllie' importieren
+import logo
+import entry_delete as ed
+
 # Hauptfenster erstellen
 root = tk.Tk()
 root.title("Bücherverwaltung")
@@ -24,6 +31,14 @@ scrollbar_y.pack(side="right", fill="y")
 scrollbar_x = ttk.Scrollbar(root, orient="horizontal", command=canvas.xview)
 scrollbar_x.pack(side="bottom", fill="x")
 
+# Scroll-Funktion für das Scrollen mit der Maus auf Windows und Linux
+def _on_mousewheel(event):
+    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+
+# Scroll-Funktion für Mac OS (spezifisch für Mac)
+def _on_mousewheel_mac(event):
+    canvas.yview_scroll(-1 if event.num == 4 else 1, "units")
+
 # Frame in der Canvas erstellen, der gescrollt werden kann
 scrollable_frame = tk.Frame(canvas)
 
@@ -38,6 +53,13 @@ scrollable_frame.bind("<Configure>", configure_scrollregion)
 
 # Scrollbars mit der Canvas verknüpfen
 canvas.configure(xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
+
+# Scrollen mit der Maus auf Windows und Linux
+root.bind_all("<MouseWheel>", _on_mousewheel)
+
+# Scrollen mit der Maus auf Mac OS
+root.bind_all("<Button-4>", _on_mousewheel_mac)
+root.bind_all("<Button-5>", _on_mousewheel_mac)
 
 # Frame für Logo und Titel erstellen
 top_frame = tk.Frame(scrollable_frame)
@@ -59,6 +81,8 @@ headline.pack(side="left", padx=10)
 # Gesamten Fensterbereich in einem LabelFrame für eine Umrandung
 main_frame = tk.LabelFrame(scrollable_frame, text="Bücherverwaltung", font=("Helvetica", 12, "bold"), padx=10, pady=10)
 main_frame.pack(fill="both", expand="yes", padx=20, pady=20)
+
+# Hier geht der restliche Code weiter, wie zuvor...
 
 # 1. Frame für "Buch hinzufügen" mit Umrandung
 frame_hinzufuegen = tk.LabelFrame(main_frame, text="Buch hinzufügen", font=("Helvetica", 12, "bold"), padx=10, pady=10)
@@ -139,12 +163,16 @@ jahr_suche = tk.Entry(grid_frame_suchfunktion)
 jahr_suche.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
 # Radiobuttons für Lesestatus unter den Eingabefeldern
-lesestatus_suche_var = tk.IntVar()
+lesestatus_suche_var = tk.IntVar(value=-1)  # Standardwert auf -1 setzen
+
 gelesen_button_suche = tk.Radiobutton(grid_frame_suchfunktion, text="Gelesen", variable=lesestatus_suche_var, value=1)
 gelesen_button_suche.grid(row=3, column=0, padx=5, pady=5, sticky="w")
 
 nicht_gelesen_button_suche = tk.Radiobutton(grid_frame_suchfunktion, text="Nicht gelesen", variable=lesestatus_suche_var, value=0)
 nicht_gelesen_button_suche.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+
+beide_button_suche = tk.Radiobutton(grid_frame_suchfunktion, text="Beide", variable=lesestatus_suche_var, value=-1)
+beide_button_suche.grid(row=3, column=2, padx=5, pady=5, sticky="w")
 
 # Button für die Suchfunktion
 button_suchfunktion = tk.Button(grid_frame_suchfunktion, text="Suchfunktion", command=lambda: db.suche_in_datenbank(
@@ -154,7 +182,7 @@ button_suchfunktion = tk.Button(grid_frame_suchfunktion, text="Suchfunktion", co
     autor_suche.get(), 
     genre_suche.get(), 
     jahr_suche.get(), 
-    lesestatus_suche_var.get() if lesestatus_suche_var.get() in [0, 1] else None
+    lesestatus_suche_var.get() if lesestatus_suche_var.get() in [0, 1] else -1  # "Beide" option handled by returning None
 ))
 button_suchfunktion.grid(row=4, column=0, padx=5, pady=10, sticky="w")
 
@@ -165,7 +193,6 @@ clear_button.grid(row=4, column=1, padx=5, pady=10, sticky="w")
 # Buttons in derselben Zeile und nebeneinander platzieren
 button_suchfunktion.grid(row=4, column=0, padx=5, pady=10, sticky="w")
 clear_button.grid(row=4, column=1, padx=5, pady=10, sticky="w")
-
 
 # 3. Frame für "Liste der Bücher ausgeben" mit Umrandung
 frame_liste = tk.LabelFrame(main_frame, text="Liste der Bücher", font=("Helvetica", 12, "bold"), padx=10, pady=10)
@@ -206,7 +233,7 @@ jahr_loeschen = tk.Entry(frame_loeschen)
 jahr_loeschen.grid(row=2, column=1, padx=5, pady=5)
 
 # Button zum Bestätigen (Daten in Datenbank löschen)
-button_buch_loeschen = tk.Button(frame_loeschen, text="Löschen", command=lambda: db.löschen_in_datenbank(
+button_buch_loeschen = tk.Button(frame_loeschen, text="Löschen", command=lambda: db.frage_loeschen_bestätigung(
     root, 
     buch_id_loeschen.get(),   # Verwende das Entry-Feld für Buch-ID
     titel_loeschen.get(),     # Verwende das Entry-Feld für Titel
