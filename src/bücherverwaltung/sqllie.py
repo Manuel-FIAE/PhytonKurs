@@ -35,6 +35,31 @@ def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
     # Fenster nach 3 Sekunden automatisch schließen, falls OK nicht gedrückt wird
     popup.after(3000, popup.destroy)
 
+def löschen_in_datenbank(root, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen):
+    # Verbindung zur SQLite-Datenbank erstellen
+    conn = sqlite3.connect("bücherverwaltung.db")
+    cur = conn.cursor()
+
+    try:
+        # Parameterbindung für Sicherheit und Vermeidung von SQL-Injection
+        query = """
+            DELETE FROM bücherverwaltung 
+            WHERE titel = ? OR autor = ? OR genre = ? OR year = ?
+        """
+        
+        # Daten in die Datenbank einfügen
+        cur.execute(query, (titel_loeschen , autor_loeschen , genre_loeschen , jahr_loeschen ))
+                    # Änderungen speichern
+        conn.commit()
+
+        # Erfolgsmeldung anzeigen (grünes Fenster)            
+        zeige_rueckmeldung(root, "Erfolg", "Buch erfolgreich gelöscht!", "green")
+    except Exception as e:
+        # Fehler beim Einfügen
+        zeige_rueckmeldung(root, "Fehler", f"Fehler beim löschen: {str(e)}", "red")
+
+    # Verbindung schließen
+    conn.close()
 
 # Funktion für die dynamische Eingabe in die Datenbank
 def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe):

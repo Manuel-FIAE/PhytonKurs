@@ -2,16 +2,15 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import sqllie as db  # Dein Modul 'sqllie' importieren
+import logo
+import entry_delete as ed
 
 # Hauptfenster erstellen
 root = tk.Tk()
 root.title("Bücherverwaltung")
 root.geometry("950x700")
 
-# Icon für das Fenster ändern
-icon_image = Image.open("C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")  # Verwende dein hochgeladenes Bild
-icon_photo = ImageTk.PhotoImage(icon_image)
-root.iconphoto(False, icon_photo)
+logo.set_window_logo(root, "C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")
 
 # Canvas für den Scrollbereich erstellen
 canvas = tk.Canvas(root)
@@ -100,6 +99,8 @@ button_buch_hinzufuegen = tk.Button(frame_hinzufuegen, text="Hinzufügen", comma
 ))
 button_buch_hinzufuegen.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
 
+clear_button = tk.Button(frame_hinzufuegen, text="Eingaben leeren", command=lambda: ed.clear_entries([titel, autor, genre, jahr]))
+clear_button.grid(row=3, column=1, columnspan=4, pady=10, sticky="w")
 
 # 2. Frame für die Suchfunktion mit Umrandung
 frame_suchfunktion = tk.LabelFrame(main_frame, text="Suchfunktion", font=("Helvetica", 12, "bold"), padx=10, pady=10)
@@ -143,6 +144,10 @@ button_suchfunktion = tk.Button(grid_frame_suchfunktion, text="Suchfunktion", co
 ))
 button_suchfunktion.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
 
+# Button zum Leeren der Eingabefelder
+clear_button = tk.Button(grid_frame_suchfunktion, text="Eingaben leeren", command=lambda: ed.clear_entries([titel_suche, autor_suche, genre_suche, jahr_suche]))
+clear_button.grid(row=3, column=1, columnspan=4, pady=10, padx=8, sticky="w")
+
 # 3. Frame für "Liste der Bücher ausgeben" mit Umrandung
 frame_liste = tk.LabelFrame(main_frame, text="Liste der Bücher", font=("Helvetica", 12, "bold"), padx=10, pady=10)
 frame_liste.pack(fill="both", expand="yes", padx=10, pady=10)
@@ -154,6 +159,41 @@ listebuecher.pack(anchor="w", pady=5)
 # Button für die Listenanzeige linksbündig
 button_liste = tk.Button(frame_liste, text="Listen Auswahl", command=lambda: db.gesamtAusgabe(root))
 button_liste.pack(anchor="w", pady=5, padx=5)
+
+# 4. Frame für "Buch löschen" mit Umrandung
+frame_loeschen = tk.LabelFrame(main_frame, text="Buch löschen", font=("Helvetica", 12, "bold"), padx=10, pady=10)
+frame_loeschen.pack(fill="both", expand="yes", padx=10, pady=10)
+
+# Labels und Eingabefelder für Buch löschen
+tk.Label(frame_loeschen, text="Titel:").grid(row=0, column=0, padx=5, pady=5)
+titel_loeschen = tk.Entry(frame_loeschen)
+titel_loeschen.grid(row=0, column=1, padx=5, pady=5)
+
+tk.Label(frame_loeschen, text="Autor:").grid(row=0, column=2, padx=5, pady=5)
+autor_loeschen = tk.Entry(frame_loeschen)
+autor_loeschen.grid(row=0, column=3, padx=5, pady=5)
+
+tk.Label(frame_loeschen, text="Genre:").grid(row=0, column=4, padx=5, pady=5)
+genre_loeschen = tk.Entry(frame_loeschen)
+genre_loeschen.grid(row=0, column=5, padx=5, pady=5)
+
+tk.Label(frame_loeschen, text="Jahr:").grid(row=0, column=6, padx=5, pady=5)
+jahr_loeschen = tk.Entry(frame_loeschen)
+jahr_loeschen.grid(row=0, column=7, padx=5, pady=5)
+
+# Button zum Bestätigen (Daten in Datenbank löschen)
+button_buch_loeschen = tk.Button(frame_loeschen, text="Löschen", command=lambda: db.löschen_in_datenbank(
+    root, 
+    titel_loeschen.get(),  # Verwende das Entry-Feld für Titel
+    autor_loeschen.get(),  # Verwende das Entry-Feld für Autor
+    genre_loeschen.get(),  # Verwende das Entry-Feld für Genre
+    jahr_loeschen.get(),   # Verwende das Entry-Feld für Jahr
+))
+button_buch_loeschen.grid(row=3, column=0, columnspan=8, pady=10, sticky="w")
+
+# Button zum Leeren der Eingabefelder
+clear_button = tk.Button(frame_loeschen, text="Eingaben leeren", command=lambda: ed.clear_entries([titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen]))
+clear_button.grid(row=3, column=1, columnspan=4, pady=10, padx=18, sticky="w")
 
 # Hauptschleife
 root.mainloop()
