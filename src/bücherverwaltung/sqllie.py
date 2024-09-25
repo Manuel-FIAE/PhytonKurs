@@ -37,7 +37,7 @@ def zeige_rueckmeldung(root, titel, nachricht, farbe, icon=None):
 # Löschen-Funktion mit Popup-Meldung bei Erfolg oder Fehler
 def löschen_in_datenbank(root, buch_id_loeschen, titel_loeschen, autor_loeschen, genre_loeschen, jahr_loeschen):
     # Verbindung zur SQLite-Datenbank erstellen
-    conn = sqlite3.connect("bücherverwaltung.db")
+    conn = sqlite3.connect("C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\bücherverwaltung.db")
     cur = conn.cursor()
 
     try:
@@ -63,7 +63,7 @@ def löschen_in_datenbank(root, buch_id_loeschen, titel_loeschen, autor_loeschen
 # Funktion für die dynamische Eingabe in die Datenbank
 def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr_eingabe, gelesen_var_eingabe):
     # Verbindung zur SQLite-Datenbank erstellen
-    conn = sqlite3.connect("bücherverwaltung.db")
+    conn = sqlite3.connect("C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\bücherverwaltung.db")
     cur = conn.cursor()
     
     # Sicherstellen, dass keine leeren Felder eingegeben wurden
@@ -96,7 +96,7 @@ def eingabe_in_datenbank(root, titel_eingabe, autor_eingabe, genre_eingabe, jahr
 # Update-Funktion mit Popup-Meldung bei Erfolg oder Fehler
 def update_in_datenbank(root, buch_id_update, titel_update, autor_update, genre_update, jahr_update, gelesen_var): 
     # Verbindung zur SQLite-Datenbank erstellen
-    conn = sqlite3.connect("bücherverwaltung.db")
+    conn = sqlite3.connect("C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\bücherverwaltung.db")
     cur = conn.cursor()
     
     try:
@@ -123,7 +123,7 @@ def update_in_datenbank(root, buch_id_update, titel_update, autor_update, genre_
 # Funktion für die dynamische Suchfunktion
 def suche_in_datenbank(root, buch_id_suche,titel_suche, autor_suche, genre_suche, jahr_suche, gelesen_var):
     # Verbindung zur SQLite-Datenbank erstellen
-    conn = sqlite3.connect("bücherverwaltung.db")
+    conn = sqlite3.connect("C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\bücherverwaltung.db")
     cur = conn.cursor()
 
     # Grundlegende SQL-Abfrage
@@ -165,8 +165,8 @@ def suche_in_datenbank(root, buch_id_suche,titel_suche, autor_suche, genre_suche
     data_window.title("Suchergebnisse")
     data_window.geometry("950x400")
     
-        # Setze das Logo im neuen Fenster (data_window)
-    logo.set_window_logo(data_window, "C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")
+    # Setze das Logo im neuen Fenster (data_window)
+    logo.set_window_logo(data_window, "C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\buchlabel.png")
 
     # Treeview für die Ergebnisse
     columns = ("Buch ID", "Titel", "Autor", "Genre", "Jahr", "Gelesen")
@@ -198,7 +198,7 @@ def suche_in_datenbank(root, buch_id_suche,titel_suche, autor_suche, genre_suche
 
 # Gesamt-Ausgabe-Funktion (falls sie auch benötigt wird)
 def gesamtAusgabe(root):
-    conn = sqlite3.connect("bücherverwaltung.db")
+    conn = sqlite3.connect("C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\bücherverwaltung.db")
     cur = conn.cursor()
 
     cur.execute("SELECT * FROM bücherverwaltung")
@@ -209,7 +209,7 @@ def gesamtAusgabe(root):
     data_window.geometry("950x400")
     
     # Setze das Logo im neuen Fenster (data_window)
-    logo.set_window_logo(data_window, "C:/Users/Student/Desktop/Phytonkurs/Phytonkurs/src/PhytonKurs/src/bücherverwaltung/buchlabel.png")
+    logo.set_window_logo(data_window, "C:\\Users\\Student\\Desktop\\Phytonkurs\\Phytonkurs\\src\\PhytonKurs\\src\\bücherverwaltung\\buchlabel.png")
 
     columns = ("Buch ID", "Titel", "Autor", "Genre", "Jahr", "Gelesen")
     tree = ttk.Treeview(data_window, columns=columns, show="headings")
