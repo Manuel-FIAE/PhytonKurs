@@ -1,2 +1,3 @@
 # PhytonKurs
-Übungen von mir beim lernen von Phyton
+
+Hier präsentiere ich meine Fortschritte beim Lernen von Python, Datenbanken und kleineren Projekten. Als Anfänger setze ich auf verschiedene Hilfsmittel, um meine Fähigkeiten stetig zu verbessern. Dabei arbeite ich Schritt für Schritt an meinen eigenen Lösungen, lerne aus Herausforderungen und entwickle mich kontinuierlich weiter. Mein Ziel ist es, meine Kenntnisse durch praktische Übungen zu vertiefen und eine solide Basis für zukünftige Projekte zu schaffen.
