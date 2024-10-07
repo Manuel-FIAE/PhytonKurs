@@ -6,13 +6,6 @@ import logo
 import entry_delete as ed
 
 
-import tkinter as tk
-from tkinter import ttk
-from PIL import Image, ImageTk
-import sqllie as db  # Dein Modul 'sqllie' importieren
-import logo
-import entry_delete as ed
-
 # Hauptfenster erstellen
 root = tk.Tk()
 root.title("Bücherverwaltung")
