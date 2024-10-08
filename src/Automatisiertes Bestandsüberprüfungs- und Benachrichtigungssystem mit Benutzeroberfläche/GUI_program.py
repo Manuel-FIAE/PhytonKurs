@@ -55,7 +55,7 @@ def load_items_below_threshold():
 def send_email(items_below_threshold):
     sender_email = "manu-panu@gmx.de"  # Deine GMX-E-Mail-Adresse
     receiver_email = "perrotti1811@gmx.de"  # Empfänger E-Mail-Adresse
-    password = "wasserbendigen"  # Dein GMX-Passwort oder App-Passwort
+    password = "fdfsdf"  # Dein GMX-Passwort oder App-Passwort
 
     smtp_server = "mail.gmx.net"
     smtp_port = 587
