@@ -2,8 +2,9 @@ import sqlite3
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QMainWindow, QLineEdit, QLabel, QHBoxLayout, QMessageBox, QApplication
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QMainWindow, QLineEdit, QLabel, QHBoxLayout, QMessageBox
 from PyQt5.QtCore import Qt
+import bcrypt
 
 # SQLite-Datenbankverbindung herstellen
 def create_connection():
@@ -19,7 +20,7 @@ def validate_user(username, password):
 
     if result:
         stored_password, role = result
-        if password == stored_password:
+        if bcrypt.checkpw(password.encode('utf-8'), stored_password):  # Verwendung von bcrypt
             return True, role
     connection.close()
     return False, None
@@ -42,7 +43,7 @@ def load_users():
     connection.close()
     return users
 
-# Angepasste Funktion zum Filtern von Artikeln, die bestellt werden müssen (Menge < Grenzwert) - jetzt mit ID
+# Funktion zum Laden der Artikel unter dem Grenzwert
 def load_items_below_threshold():
     connection = create_connection()
     cursor = connection.cursor()
@@ -51,23 +52,20 @@ def load_items_below_threshold():
     connection.close()
     return items_below_threshold
 
-# Funktion zum Senden der E-Mail mit schöner Formatierung und Artikel-ID
+# Funktion zum Senden der E-Mail
 def send_email(items_below_threshold):
     sender_email = "manu-panu@gmx.de"  # Deine GMX-E-Mail-Adresse
     receiver_email = "perrotti1811@gmx.de"  # Empfänger E-Mail-Adresse
-    password = "fdfsdf"  # Dein GMX-Passwort oder App-Passwort
 
     smtp_server = "mail.gmx.net"
     smtp_port = 587
 
     subject = "Bestellliste: Artikel unter dem Grenzwert"
 
-    # Schöner formulierte Nachricht mit einer Tabelle, die die Artikel-ID enthält
+    # Nachricht mit einer Tabelle
     body = """
     Sehr geehrte Damen und Herren,<br><br>
-
-    im Folgenden finden Sie eine Liste der Artikel, die derzeit unter dem festgelegten Grenzwert liegen und dringend nachbestellt werden sollten:<br><br>
-
+    im Folgenden finden Sie eine Liste der Artikel, die derzeit unter dem festgelegten Grenzwert liegen:<br><br>
     <table border="1" cellpadding="5" cellspacing="0">
         <tr>
             <th>ID</th>
@@ -85,19 +83,15 @@ def send_email(items_below_threshold):
             <td>{item[2]}</td>
             <td>{item[3]}</td>
         </tr>
-    """
+        """
 
     body += """
     </table><br><br>
-
     Bitte prüfen Sie die Bestände und veranlassen Sie zeitnah eine Nachbestellung.<br><br>
-
-    Mit freundlichen Grüßen,<br><br>
-    Ihr Bestandsmanagement-Team<br>
-    Manuel Perrotta
+    Mit freundlichen Grüßen,<br>
+    Ihr Bestandsmanagement-Team
     """
 
-    # E-Mail Nachricht zusammensetzen
     message = MIMEMultipart()
     message["From"] = sender_email
     message["To"] = receiver_email
@@ -119,8 +113,8 @@ def email_on_login():
     if items_below_threshold:
         send_email(items_below_threshold)
 
-# Funktion zum Hinzufügen von Artikeln
-def add_item(item_name, quantity, threshold, inventory_table, grenz_table):
+# Funktion zum Hinzufügen von Artikeln mit Erfolgspop-up und Leeren der Eingabefelder
+def add_item(item_name, quantity, threshold, inventory_table, grenz_table, item_name_input, item_quantity_input, item_threshold_input):
     if item_name and quantity and threshold:
         try:
             connection = create_connection()
@@ -131,11 +125,19 @@ def add_item(item_name, quantity, threshold, inventory_table, grenz_table):
             update_inventory_table(inventory_table)
             update_orders_table(grenz_table)
             email_on_change()  # E-Mail senden, wenn Artikel geändert werden
+            
+            # Erfolgspop-up anzeigen
+            QMessageBox.information(None, "Erfolgreich", "Artikel erfolgreich hinzugefügt!")
+            
+            # Eingabefelder leeren
+            item_name_input.clear()
+            item_quantity_input.clear()
+            item_threshold_input.clear()
         except Exception as e:
             print(f"Fehler beim Hinzufügen des Artikels: {e}")
 
-# Funktion zum Bearbeiten von Artikeln (nur die Menge wird aktualisiert)
-def update_item(item_id, new_quantity, inventory_table, grenz_table):
+# Funktion zum Bearbeiten von Artikeln mit Erfolgspop-up und Leeren aller Eingabefelder
+def update_item(item_id, new_quantity, inventory_table, grenz_table, item_id_input, item_quantity_input, item_name_input, item_threshold_input):
     if item_id and new_quantity:
         try:
             connection = create_connection()
@@ -146,11 +148,20 @@ def update_item(item_id, new_quantity, inventory_table, grenz_table):
             update_inventory_table(inventory_table)
             update_orders_table(grenz_table)
             email_on_change()  # E-Mail senden, wenn Artikel geändert werden
+            
+            # Erfolgspop-up anzeigen
+            QMessageBox.information(None, "Erfolgreich", "Artikel erfolgreich bearbeitet!")
+            
+            # Alle Eingabefelder leeren
+            item_id_input.clear()
+            item_name_input.clear()  # Artikelname leeren
+            item_quantity_input.clear()
+            item_threshold_input.clear()  # Grenzwert leeren
         except Exception as e:
             print(f"Fehler beim Bearbeiten des Artikels: {e}")
 
-# Funktion zum Löschen von Artikeln
-def delete_item(item_id, inventory_table, grenz_table):
+# Funktion zum Löschen von Artikeln mit Erfolgspop-up und Leeren aller Eingabefelder
+def delete_item(item_id, inventory_table, grenz_table, item_id_input, item_name_input, item_quantity_input, item_threshold_input):
     if item_id:
         try:
             connection = create_connection()
@@ -161,8 +172,46 @@ def delete_item(item_id, inventory_table, grenz_table):
             update_inventory_table(inventory_table)
             update_orders_table(grenz_table)
             email_on_change()  # E-Mail senden, wenn Artikel geändert werden
+            
+            # Erfolgspop-up anzeigen
+            QMessageBox.information(None, "Erfolgreich", "Artikel erfolgreich gelöscht!")
+            
+            # Alle Eingabefelder leeren
+            item_id_input.clear()
+            item_name_input.clear()  # Artikelname leeren
+            item_quantity_input.clear()
+            item_threshold_input.clear()  # Grenzwert leeren
         except Exception as e:
             print(f"Fehler beim Löschen des Artikels: {e}")
+            
+# Funktion zum Erstellen und Platzieren des Logout-Buttons
+def create_logout_button(tab_widget):
+    # Logout-Button erstellen
+    logout_button = QPushButton("Logout")
+
+    # Funktion beim Klick auf den Logout-Button definieren
+    logout_button.clicked.connect(logout_action)
+
+    # Layout für den Logout-Button und die Tabs erstellen
+    layout = QVBoxLayout()
+    layout.addWidget(logout_button)  # Logout-Button zum Layout hinzufügen
+    layout.addWidget(tab_widget)      # Tabs zum Layout hinzufügen
+
+    # Neues Widget erstellen und das Layout setzen
+    container = QWidget()
+    container.setLayout(layout)
+
+    return container
+
+def logout_action():
+    global main_window
+
+    # Das Hauptfenster (GUI_program) schließen
+    main_window.close()
+    
+    import GUI_log as log
+    
+    log.window.show()
 
 # Funktion zum Löschen von Benutzern
 def delete_user(username, user_table):
@@ -183,7 +232,6 @@ def email_on_change():
     if items_below_threshold:
         send_email(items_below_threshold)
 
-# Hauptfenster mit GUI
 def open_main_program(role):
     global main_window
 
@@ -278,13 +326,13 @@ def open_main_program(role):
     add_item_layout.addWidget(item_threshold_input)
 
     add_item_button = QPushButton("Artikel hinzufügen")
-    add_item_button.clicked.connect(lambda: add_item(item_name_input.text(), item_quantity_input.text(), item_threshold_input.text(), inventory_table, grenz_table))
+    add_item_button.clicked.connect(lambda: add_item(item_name_input.text(), item_quantity_input.text(), item_threshold_input.text(), inventory_table, grenz_table, item_name_input, item_quantity_input, item_threshold_input))
     
     update_item_button = QPushButton("Artikel bearbeiten (Menge)")
-    update_item_button.clicked.connect(lambda: update_item(item_id_input.text(), item_quantity_input.text(), inventory_table, grenz_table))
+    update_item_button.clicked.connect(lambda: update_item(item_id_input.text(), item_quantity_input.text(), inventory_table, grenz_table, item_id_input, item_quantity_input, item_name_input, item_threshold_input))
     
     delete_item_button = QPushButton("Artikel löschen")
-    delete_item_button.clicked.connect(lambda: delete_item(item_id_input.text(), inventory_table, grenz_table))
+    delete_item_button.clicked.connect(lambda: delete_item(item_id_input.text(), inventory_table, grenz_table, item_id_input, item_name_input, item_quantity_input, item_threshold_input))
 
     button_layout = QHBoxLayout()
     button_layout.addWidget(add_item_button)
@@ -296,8 +344,13 @@ def open_main_program(role):
     option_tab.setLayout(option_layout)
     tabs.addTab(option_tab, "Artikelverwaltung")
 
-    main_window.setCentralWidget(tabs)
+    # Den Logout-Button über den Tabs platzieren
+    container_with_logout = create_logout_button(tabs)
+
+    # Setze das Widget mit Tabs und Logout-Button als zentrales Widget
+    main_window.setCentralWidget(container_with_logout)
     main_window.show()
+
 
 # Funktion zum Aktualisieren der Inventarliste in der GUI
 def update_inventory_table(inventory_table):
@@ -331,7 +384,7 @@ def update_orders_table(grenz_table):
 
     # E-Mail senden, wenn sich etwas ändert
     email_on_change()
-    
+
 # Funktion zum Login-Prozess
 def handle_login(username, password):
     success, role = validate_user(username, password)
@@ -346,3 +399,5 @@ def handle_login(username, password):
         open_main_program(role)
     else:
         QMessageBox.warning(None, "Fehlgeschlagen", "Benutzername oder Passwort falsch.")
+
+#step 1 zurück

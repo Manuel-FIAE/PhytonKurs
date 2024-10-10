@@ -1,18 +1,20 @@
 import sys
 import sqlite3
 import bcrypt
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QDialog,QComboBox
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.QtCore import Qt
 import re  # Für Passwort-Richtlinien
-
-# Importiere die Funktion aus GUI_program.py
-from GUI_program import open_main_program  # Nur die Funktion importieren
 
 # SQLite-Datenbankverbindung ohne Tabellenerstellung
 def create_connection():
     connection = sqlite3.connect('Database_Projekt_Bestandsliste.db')  # Dein Datenbankname
     return connection
+
+# Funktion zum Leeren der Eingabefelder
+def clear_input_fields():
+    input_username.clear()  # Benutzername leeren
+    input_password.clear()  # Passwort leeren
 
 # Passwort-Richtlinien überprüfen
 def validate_password(password):
@@ -26,8 +28,8 @@ def validate_password(password):
         return False, "Passwort muss mindestens eine Zahl enthalten."
     return True, "Passwort ist gültig."
 
-# Registrierung - Benutzer hinzufügen
-def register_user(username, password):
+# Registrierung - Benutzer hinzufügen mit Rolle
+def register_user(username, password, role):
     connection = create_connection()
     cursor = connection.cursor()
 
@@ -44,11 +46,13 @@ def register_user(username, password):
     # Passwort hashen
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
-    # Neuen Benutzer hinzufügen
-    cursor.execute("INSERT INTO user (username, password_hash, role) VALUES (?, ?, ?)", (username, hashed_password, 'User'))
+    # Neuen Benutzer mit der ausgewählten Rolle hinzufügen
+    cursor.execute("INSERT INTO user (username, password_hash, role) VALUES (?, ?, ?)", (username, hashed_password, role))
     connection.commit()
     connection.close()
     return True, "Registrierung erfolgreich!"
+
+from PyQt5.QtGui import QPixmap
 
 # Fenster für Registrierung erstellen (neuen Benutzer hinzufügen)
 class RegisterWindow(QDialog):
@@ -56,7 +60,7 @@ class RegisterWindow(QDialog):
         super().__init__()
 
         self.setWindowTitle("Neuen Benutzer registrieren")
-        self.setGeometry(200, 200, 400, 200)
+        self.setGeometry(200, 200, 400, 300)
 
         # Layout für das Registrierungsfenster
         layout = QVBoxLayout()
@@ -73,6 +77,60 @@ class RegisterWindow(QDialog):
         layout.addWidget(self.label_password)
         layout.addWidget(self.input_password)
 
+        # Passwortanforderungen mit Icons anzeigen
+        self.requirements_layout = QVBoxLayout()
+
+        # Definiere die Icon-Größe
+        icon_size = 24
+
+        # Anforderung: Länge (mind. 8 Zeichen)
+        self.length_label = QLabel("Mindestens 8 Zeichen")
+        self.length_icon = QLabel()
+        self.length_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(icon_size, icon_size))  # Rotes Kreuz Icon, skaliert
+        self.length_layout = QHBoxLayout()
+        self.length_layout.addWidget(self.length_label)
+        self.length_layout.addWidget(self.length_icon)
+        self.requirements_layout.addLayout(self.length_layout)
+
+        # Anforderung: Großbuchstaben
+        self.upper_label = QLabel("Mindestens 1 Großbuchstabe")
+        self.upper_icon = QLabel()
+        self.upper_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(icon_size, icon_size))  # Rotes Kreuz Icon, skaliert
+        self.upper_layout = QHBoxLayout()
+        self.upper_layout.addWidget(self.upper_label)
+        self.upper_layout.addWidget(self.upper_icon)
+        self.requirements_layout.addLayout(self.upper_layout)
+
+        # Anforderung: Kleinbuchstaben
+        self.lower_label = QLabel("Mindestens 1 Kleinbuchstabe")
+        self.lower_icon = QLabel()
+        self.lower_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(icon_size, icon_size))  # Rotes Kreuz Icon, skaliert
+        self.lower_layout = QHBoxLayout()
+        self.lower_layout.addWidget(self.lower_label)
+        self.lower_layout.addWidget(self.lower_icon)
+        self.requirements_layout.addLayout(self.lower_layout)
+
+        # Anforderung: Zahl
+        self.number_label = QLabel("Mindestens 1 Zahl")
+        self.number_icon = QLabel()
+        self.number_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(icon_size, icon_size))  # Rotes Kreuz Icon, skaliert
+        self.number_layout = QHBoxLayout()
+        self.number_layout.addWidget(self.number_label)
+        self.number_layout.addWidget(self.number_icon)
+        self.requirements_layout.addLayout(self.number_layout)
+
+        layout.addLayout(self.requirements_layout)
+
+        # Verbindung der Passwort-Eingabe mit der Überprüfung der Anforderungen
+        self.input_password.textChanged.connect(self.check_password_requirements)
+
+        # Rolle auswählen (User oder Admin)
+        self.label_role = QLabel("Rolle auswählen:")
+        self.role_selector = QComboBox()
+        self.role_selector.addItems(["User", "Admin"])
+        layout.addWidget(self.label_role)
+        layout.addWidget(self.role_selector)
+
         # Registrierung-Button
         self.register_button = QPushButton("Benutzer hinzufügen")
         self.register_button.clicked.connect(self.register)
@@ -81,20 +139,52 @@ class RegisterWindow(QDialog):
         # Setze das Layout für das Fenster
         self.setLayout(layout)
 
+    def check_password_requirements(self):
+        password = self.input_password.text()
+
+        # Überprüfen der Länge
+        if len(password) >= 8:
+            self.length_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\grün.jpg").scaled(24, 24))  # Grüner Haken, skaliert
+        else:
+            self.length_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(24, 24))  # Rotes Kreuz, skaliert
+
+        # Überprüfen auf Großbuchstaben
+        if any(char.isupper() for char in password):
+            self.upper_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\grün.jpg").scaled(24, 24))  # Grüner Haken, skaliert
+        else:
+            self.upper_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(24, 24))  # Rotes Kreuz, skaliert
+
+        # Überprüfen auf Kleinbuchstaben
+        if any(char.islower() for char in password):
+            self.lower_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\grün.jpg").scaled(24, 24))  # Grüner Haken, skaliert
+        else:
+            self.lower_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(24, 24))  # Rotes Kreuz, skaliert
+
+        # Überprüfen auf Zahlen
+        if any(char.isdigit() for char in password):
+            self.number_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\grün.jpg").scaled(24, 24))  # Grüner Haken, skaliert
+        else:
+            self.number_icon.setPixmap(QPixmap(r"src\Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche\rot.png").scaled(24, 24))  # Rotes Kreuz, skaliert
+
     def register(self):
         username = self.input_username.text()
         password = self.input_password.text()
+        role = self.role_selector.currentText()  # Wähle die Rolle basierend auf der Auswahl
 
         # Registrierung versuchen
-        success, message = register_user(username, password)
+        success, message = register_user(username, password, role)  # Übergebe die Rolle an die Funktion
         msg = QMessageBox()
         if success:
             msg.setIcon(QMessageBox.Information)
             msg.setText(message)
+            msg.exec_()
+            self.accept()  # Schließt das Registrierungsfenster nach erfolgreicher Registrierung
         else:
             msg.setIcon(QMessageBox.Warning)
             msg.setText(message)
-        msg.exec_()
+            msg.exec_()
+
+
 
 # Admin-Login-Fenster (wird aufgerufen, wenn auf "Registrieren" geklickt wird)
 class AdminLoginWindow(QDialog):
@@ -185,29 +275,25 @@ logo.setPixmap(scaled_pixmap)
 logo.setAlignment(Qt.AlignCenter)
 layout.addWidget(logo)
 
-# Login-Felder
+# Login-Felder zentriert anzeigen
 login_layout = QVBoxLayout()
 
-# Benutzername
-username_layout = QHBoxLayout()
-label_username = QLabel("Benutzername:")
+# Benutzername-Eingabefeld mit Platzhaltertext
 input_username = QLineEdit()
+input_username.setPlaceholderText("Benutzername")  # Platzhaltertext
 input_username.setMaxLength(14)
-input_username.setFixedWidth(150)
-username_layout.addWidget(label_username)
-username_layout.addWidget(input_username)
-login_layout.addLayout(username_layout)
+input_username.setFixedWidth(250)  # Feste Breite der Eingabefelder
+input_username.setAlignment(Qt.AlignCenter)  # Zentriere den Text im Eingabefeld
+login_layout.addWidget(input_username, alignment=Qt.AlignCenter)  # Zentriere das Eingabefeld in der Mitte
 
-# Passwort
-password_layout = QHBoxLayout()
-label_password = QLabel("Passwort:")
+# Passwort-Eingabefeld mit Platzhaltertext
 input_password = QLineEdit()
+input_password.setPlaceholderText("Passwort")  # Platzhaltertext
 input_password.setMaxLength(14)
-input_password.setFixedWidth(150)
+input_password.setFixedWidth(250)  # Feste Breite der Eingabefelder
 input_password.setEchoMode(QLineEdit.Password)  # Passwort verstecken
-password_layout.addWidget(label_password)
-password_layout.addWidget(input_password)
-login_layout.addLayout(password_layout)
+input_password.setAlignment(Qt.AlignCenter)  # Zentriere den Text im Eingabefeld
+login_layout.addWidget(input_password, alignment=Qt.AlignCenter)  # Zentriere das Eingabefeld in der Mitte
 
 layout.addLayout(login_layout)
 
@@ -232,14 +318,15 @@ def login():
             msg.setText(f"Login erfolgreich! Rolle: {role}")
             msg.exec_()
 
-            # Debugging: Prüfen, ob diese Zeile erreicht wird
-            print(f"Login erfolgreich für {username} mit Rolle {role}")
+            # Eingabefelder leeren nach erfolgreichem Login
+            clear_input_fields()  # Zeile 84: Eingabefelder leeren
 
             # Schließe das aktuelle Login-Fenster
             window.close()
 
-            # Öffne das Hauptfenster
-            open_main_program(role)
+            # Füge hier die Logik hinzu, die das Hauptprogramm nach erfolgreichem Login öffnet
+            from GUI_program import open_main_program
+            open_main_program(role)  # Je nach Benutzerrolle
 
         else:
             msg = QMessageBox()
@@ -251,7 +338,6 @@ def login():
         msg.setIcon(QMessageBox.Warning)
         msg.setText("Benutzername nicht gefunden.")
         msg.exec_()
-
 
 # Login Bestätigen mit Enter
 input_password.returnPressed.connect(login)
