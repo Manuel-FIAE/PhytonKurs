@@ -249,6 +249,7 @@ class AdminLoginWindow(QDialog):
             msg.setText("Admin-Benutzername nicht gefunden.")
             msg.exec_()
 
+
 # Hauptanwendung
 app = QApplication(sys.argv)
 
@@ -258,20 +259,23 @@ window.setWindowTitle("Bestands- und Benachrichtigungssystem")
 window.setGeometry(100, 100, 600, 400)
 window.setWindowIcon(QIcon('logo.jpg'))  # Setze ein Fenster-Icon, wenn gewünscht
 
+# Hintergrund weiß setzen
+window.setStyleSheet("background-color: white;")
+
 # Layout erstellen
 layout = QVBoxLayout()
 
-# Programmnamen anzeigen
+
+
+# Programmnamen und Logo hinzufügen
 program_name = QLabel("Bestands- und Benachrichtigungssystem")
 program_name.setStyleSheet("font-size: 22px; font-weight: bold; text-align: center;")
 program_name.setAlignment(Qt.AlignCenter)
 layout.addWidget(program_name)
 
-# Logo hinzufügen
 logo = QLabel()
-pixmap = QPixmap("src/Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche/logo.jpg")  # Pfad zu deinem Logo anpassen
-scaled_pixmap = pixmap.scaled(150, 150, Qt.KeepAspectRatio)
-logo.setPixmap(scaled_pixmap)
+pixmap = QPixmap("src/Automatisiertes Bestandsüberprüfungs- und Benachrichtigungssystem mit Benutzeroberfläche/logo.jpg").scaled(150, 150, Qt.KeepAspectRatio)  # Pfad zu deinem Logo anpassen
+logo.setPixmap(pixmap)
 logo.setAlignment(Qt.AlignCenter)
 layout.addWidget(logo)
 
@@ -284,6 +288,7 @@ input_username.setPlaceholderText("Benutzername")  # Platzhaltertext
 input_username.setMaxLength(14)
 input_username.setFixedWidth(250)  # Feste Breite der Eingabefelder
 input_username.setAlignment(Qt.AlignCenter)  # Zentriere den Text im Eingabefeld
+input_username.setStyleSheet("background-color: lightgray;")  # Eingabefeld grau setzen
 login_layout.addWidget(input_username, alignment=Qt.AlignCenter)  # Zentriere das Eingabefeld in der Mitte
 
 # Passwort-Eingabefeld mit Platzhaltertext
@@ -293,6 +298,7 @@ input_password.setMaxLength(14)
 input_password.setFixedWidth(250)  # Feste Breite der Eingabefelder
 input_password.setEchoMode(QLineEdit.Password)  # Passwort verstecken
 input_password.setAlignment(Qt.AlignCenter)  # Zentriere den Text im Eingabefeld
+input_password.setStyleSheet("background-color: lightgray;")  # Eingabefeld grau setzen
 login_layout.addWidget(input_password, alignment=Qt.AlignCenter)  # Zentriere das Eingabefeld in der Mitte
 
 layout.addLayout(login_layout)
@@ -357,6 +363,11 @@ def open_admin_login_window():
 sign_in_label.mousePressEvent = lambda event: open_admin_login_window()  # Klickbare Registrierung
 layout.addWidget(sign_in_label, alignment=Qt.AlignCenter)
 
+# Erstelle ein Label für die Version und platziere es unten rechts
+version_label = QLabel("Version 5.1.1")
+version_label.setStyleSheet("font-size: 10px;")  # Setze die Schriftgröße klein
+layout.addWidget(version_label, alignment=Qt.AlignRight)  # Füge das Label rechts unten hinzu
+
 # Layout auf Fenster anwenden
 window.setLayout(layout)
 
@@ -365,3 +376,4 @@ window.show()
 
 # Hauptanwendung starten
 sys.exit(app.exec_())
+
